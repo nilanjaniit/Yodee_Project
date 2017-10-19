@@ -3,6 +3,7 @@ from math import radians, cos, sin, asin, sqrt
 import numpy as np
 from collections import defaultdict
 import sys
+import gmplot
 
 def haversine(lon1,lat1,lon2,lat2):
     lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
@@ -77,6 +78,33 @@ def write_output(lat_long_tup,drivers,outputfile):
                 break
     f.close()
                 
+def create_maps(lat_long_tup,num_drivers,drivers,loc):
+    for ind in range(0,num_drivers):
+        lats=[]
+        lons=[]
+        labels=[]
+        for i,v in enumerate(lat_long_tup):
+            if i in drivers[ind]:
+                lat = v[0]
+                lon = v[1]
+                label = drivers[ind].index(i)
+                lats.append(lat)
+                lons.append(lon)
+                labels.append(label)
+    final_path = []
+    for i in range(0,len(lats)):
+        final_path.append([lats[i],lons[i],labels[i]]) 
+    path_lat=[]
+    path_lon=[]
+    for v in sorted(final_path,key=lambda x:x[2],reverse=False):
+        path_lat.append(v[0])
+        path_lon.append(v[1])
+    gmap = gmplot.GoogleMapPlotter(path_lat[0],path_lon[0],16)
+    gmap.plot(path_lat, path_lon, edge_color="cyan", edge_width=10)
+    plot_file = loc+"map"+str(ind)+".html"
+    gmap.draw(plot_file)
+    
+
 
 def main():
     num_drivers = int(sys.argv[1])
@@ -104,6 +132,7 @@ def main():
     drivers = get_route(sorted_latlon_tup_with_dist,drivers,dist_pair,drivers_score)
 
     write_output(lat_long_tup,drivers,output_file)
+    create_maps(lat_long_tup,num_drivers,drivers,"./Map_Folder/")
 
 
 
